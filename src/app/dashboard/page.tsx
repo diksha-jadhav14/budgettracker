@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowUpIcon, ArrowDownIcon, WalletIcon, TrendingUpIcon, LogOutIcon, PlusIcon, LightbulbIcon } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { TransactionDialog } from '@/components/transaction-dialog';
+import { BudgetDialog } from '@/components/budget-dialog';
+import { BudgetCard } from '@/components/budget-card';
 import { MonthSelector } from '@/components/month-selector';
 import Link from 'next/link';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
@@ -28,12 +30,28 @@ interface Transaction {
   category: { name: string } | null;
 }
 
+interface BudgetStatus {
+  budgetId: string;
+  category: {
+    id: string;
+    name: string;
+    icon?: string | null;
+  };
+  budgetAmount: number;
+  spent: number;
+  remaining: number;
+  percentage: number;
+  alertLevel: 'safe' | 'warning' | 'danger' | 'exceeded';
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
   const [trends, setTrends] = useState<Array<{ month: string; income: number; expenses: number; balance: number }>>([]);
@@ -53,9 +71,11 @@ export default function DashboardPage() {
     
     setIsLoading(true);
     try {
-      const [transactionsRes, trendsRes] = await Promise.all([
+      const monthParam = selectedMonth.toISOString();
+      const [transactionsRes, trendsRes, budgetStatusRes] = await Promise.all([
         fetch('/api/transactions'),
         fetch('/api/transactions/trends'),
+        fetch(`/api/budgets/status?month=${monthParam}`),
       ]);
       
       if (transactionsRes.ok) {
@@ -66,6 +86,11 @@ export default function DashboardPage() {
       if (trendsRes.ok) {
         const data = await trendsRes.json();
         setTrends(data.trends);
+      }
+
+      if (budgetStatusRes.ok) {
+        const data = await budgetStatusRes.json();
+        setBudgetStatus(data.budgetStatus || []);
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
@@ -78,8 +103,7 @@ export default function DashboardPage() {
     if (session) {
       fetchTransactions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, selectedMonth]);
 
   if (status === 'loading' || !mounted) {
     return (
@@ -283,6 +307,11 @@ export default function DashboardPage() {
           )}
 
           <div className="grid gap-6 lg:grid-cols-2">
+            <BudgetCard 
+              budgetStatus={budgetStatus}
+              onSetBudget={() => setBudgetDialogOpen(true)}
+            />
+
             <Card className="border-border/50 shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -391,6 +420,13 @@ export default function DashboardPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={fetchTransactions}
+      />
+
+      <BudgetDialog
+        open={budgetDialogOpen}
+        onOpenChange={setBudgetDialogOpen}
+        onSuccess={fetchTransactions}
+        selectedMonth={selectedMonth}
       />
     </div>
   );

@@ -21,6 +21,7 @@ model User {
   sessions      Session[]
   transactions  Transaction[]
   categories    Category[]
+  budgets       Budget[]
 }
 
 model Account {
@@ -70,6 +71,7 @@ model Category {
   
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      Budget[]
   
   @@unique([userId, name])
 }
@@ -96,4 +98,21 @@ model Transaction {
 enum TransactionType {
   INCOME
   EXPENSE
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  amount     Float
+  month      DateTime
+  userId     String
+  categoryId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, categoryId, month])
+  @@index([userId])
+  @@index([month])
 }
