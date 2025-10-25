@@ -8,18 +8,11 @@ echo ""
 if [ -f ".env" ]; then
     if grep -q "prisma+postgres" .env; then
         echo "🔧 Fixing incorrect DATABASE_URL in .env file..."
-        echo 'DATABASE_URL="postgresql://budgetuser:budgetpass123@localhost:5432/budgettracker?schema=public"' > .env
+        sed -i.bak 's|DATABASE_URL=.*|DATABASE_URL="postgresql://budgetuser:budgetpass123@localhost:5432/budgettracker?schema=public"|' .env
+        rm -f .env.bak
         echo "✅ .env file fixed"
         echo ""
     fi
-fi
-
-# Ensure .env.local exists
-if [ ! -f ".env.local" ]; then
-    echo "📝 Creating .env.local file..."
-    cp .env.example .env.local
-    echo "✅ .env.local created"
-    echo ""
 fi
 
 # Check if Docker is running
