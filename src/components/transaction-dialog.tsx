@@ -389,12 +389,18 @@ export function TransactionDialog({
 
                     <div className="space-y-2">
                       <Label htmlFor="amount">Amount</Label>
-                      <Input
-                        {...register('amount', { required: true })}
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          ₹
+                        </span>
+                        <Input
+                          {...register('amount', { required: true })}
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="pl-7"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -477,12 +483,18 @@ export function TransactionDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount</Label>
-                <Input
-                  {...register('amount', { required: true })}
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    ₹
+                  </span>
+                  <Input
+                    {...register('amount', { required: true })}
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-7"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

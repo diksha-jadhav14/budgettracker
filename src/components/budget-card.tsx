@@ -127,7 +127,7 @@ export function BudgetCard({ budgetStatus, onSetBudget }: BudgetCardProps) {
                         {budget.category.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        ${budget.spent.toFixed(2)} of ${budget.budgetAmount.toFixed(2)}
+                        ₹{budget.spent.toFixed(2)} of ₹{budget.budgetAmount.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export function BudgetCard({ budgetStatus, onSetBudget }: BudgetCardProps) {
                       {budget.percentage}% used
                     </span>
                     <span className={budget.remaining < 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
-                      {budget.remaining < 0 ? 'Over by' : 'Remaining'}: ${Math.abs(budget.remaining).toFixed(2)}
+                      {budget.remaining < 0 ? 'Over by' : 'Remaining'}: ₹{Math.abs(budget.remaining).toFixed(2)}
                     </span>
                   </div>
                   <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">

@@ -210,14 +210,14 @@ function generateInsights(
           type: 'warning',
           title: 'Increased Spending',
           message: `You spent ${Math.abs(expenseChangePercentage).toFixed(1)}% more this month compared to last month.`,
-          value: `+$${expenseChange.toFixed(2)}`,
+          value: `+₹${expenseChange.toFixed(2)}`,
         });
       } else {
         insights.push({
           type: 'success',
           title: 'Reduced Spending',
           message: `You spent ${Math.abs(expenseChangePercentage).toFixed(1)}% less this month. Great job!`,
-          value: `-$${Math.abs(expenseChange).toFixed(2)}`,
+          value: `-₹${Math.abs(expenseChange).toFixed(2)}`,
         });
       }
     }
@@ -230,7 +230,7 @@ function generateInsights(
       type: 'info',
       title: 'High Category Spending',
       message: `${topCategory.category} accounts for ${topCategory.percentage.toFixed(1)}% of your expenses. Consider if this aligns with your priorities.`,
-      value: `$${topCategory.amount.toFixed(2)}`,
+      value: `₹${topCategory.amount.toFixed(2)}`,
     });
   }
 
@@ -243,7 +243,7 @@ function generateInsights(
         type: 'warning',
         title: `${trend.category} Spike`,
         message: `Your ${trend.category} spending increased by ${trend.changePercentage.toFixed(1)}% this month.`,
-        value: `+$${trend.change.toFixed(2)}`,
+        value: `+₹${trend.change.toFixed(2)}`,
       });
     }
   }
@@ -259,14 +259,14 @@ function generateInsights(
           type: 'success',
           title: 'Income Increase',
           message: `Your income increased by ${incomeChangePercentage.toFixed(1)}% this month.`,
-          value: `+$${incomeChange.toFixed(2)}`,
+          value: `+₹${incomeChange.toFixed(2)}`,
         });
       } else {
         insights.push({
           type: 'info',
           title: 'Income Decrease',
           message: `Your income decreased by ${Math.abs(incomeChangePercentage).toFixed(1)}% this month.`,
-          value: `-$${Math.abs(incomeChange).toFixed(2)}`,
+          value: `-₹${Math.abs(incomeChange).toFixed(2)}`,
         });
       }
     }

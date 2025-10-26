@@ -167,13 +167,13 @@ export default function InsightsPage() {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Income</span>
                         <span className="font-semibold text-green-600">
-                          ${analysis.currentMonth.income.toFixed(2)}
+                          ₹{analysis.currentMonth.income.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Expenses</span>
                         <span className="font-semibold text-red-600">
-                          ${analysis.currentMonth.expenses.toFixed(2)}
+                          ₹{analysis.currentMonth.expenses.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm pt-2 border-t">
@@ -183,7 +183,7 @@ export default function InsightsPage() {
                             analysis.currentMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
-                          ${analysis.currentMonth.balance.toFixed(2)}
+                          ₹{analysis.currentMonth.balance.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -212,13 +212,13 @@ export default function InsightsPage() {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Income</span>
                         <span className="font-semibold text-green-600">
-                          ${analysis.previousMonth.income.toFixed(2)}
+                          ₹{analysis.previousMonth.income.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Expenses</span>
                         <span className="font-semibold text-red-600">
-                          ${analysis.previousMonth.expenses.toFixed(2)}
+                          ₹{analysis.previousMonth.expenses.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm pt-2 border-t">
@@ -228,7 +228,7 @@ export default function InsightsPage() {
                             analysis.previousMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
-                          ${analysis.previousMonth.balance.toFixed(2)}
+                          ₹{analysis.previousMonth.balance.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -351,7 +351,7 @@ export default function InsightsPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-muted-foreground">
-                                  ${category.amount.toFixed(2)}
+                                  ₹{category.amount.toFixed(2)}
                                 </span>
                                 <span className="text-xs font-medium">
                                   {category.percentage.toFixed(1)}%
@@ -393,7 +393,7 @@ export default function InsightsPage() {
                                   const item = analysis.categorySpending.find(
                                     (c) => c.category === value
                                   );
-                                  return `${value}: $${item?.amount.toFixed(2) || 0}`;
+                                  return `${value}: ₹${item?.amount.toFixed(2) || 0}`;
                                 }}
                               />
                             }
@@ -445,9 +445,9 @@ export default function InsightsPage() {
                           <div className="flex-1">
                             <p className="font-medium text-sm">{trend.category}</p>
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              <span>Prev: ${trend.previousMonth.toFixed(2)}</span>
+                              <span>Prev: ₹{trend.previousMonth.toFixed(2)}</span>
                               <span>→</span>
-                              <span>Now: ${trend.currentMonth.toFixed(2)}</span>
+                              <span>Now: ₹{trend.currentMonth.toFixed(2)}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">

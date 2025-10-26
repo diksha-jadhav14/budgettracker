@@ -38,9 +38,9 @@ export function parseTransactionText(text: string): {
   const cleanText = text.toLowerCase().replace(/\s+/g, ' ').trim();
   
   const amountPatterns = [
-    /\$\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
-    /(?:rs|inr|₹)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
-    /(?:amount|total|amt|paid|price|sum)[\s:]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
+    /₹\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
+    /(?:rs|inr|rupees?)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
+    /(?:amount|total|amt|paid|price|sum)[\s:]*₹?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/,
     /(\d+(?:,\d{3})*\.\d{2})/,
     /(\d+\.\d{2})/,
   ];
@@ -86,7 +86,7 @@ export function parseTransactionText(text: string): {
   const descriptionPatterns = [
     /(?:description|desc|merchant|store|vendor|at)[\s:]+([^\n]{3,50})/i,
     /(?:to|from)[\s:]+([A-Z][A-Za-z\s&]{2,50})/,
-    /^([A-Z][A-Za-z\s&]{2,50})(?=\s+(?:\$|rs|inr|₹|\d))/,
+    /^([A-Z][A-Za-z\s&]{2,50})(?=\s+(?:₹|rs|inr|rupees?|\d))/,
   ];
 
   let description: string | null = null;

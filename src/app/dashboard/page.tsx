@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +66,7 @@ export default function DashboardPage() {
     }
   }, [status, router]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!session) return;
     
     setIsLoading(true);
@@ -97,13 +97,13 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session, selectedMonth, setIsLoading, setTransactions, setTrends, setBudgetStatus]);
 
   useEffect(() => {
     if (session) {
       fetchTransactions();
     }
-  }, [session, selectedMonth]);
+  }, [session, fetchTransactions]);
 
   if (status === 'loading' || !mounted) {
     return (
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
+                <div className="text-2xl font-bold">₹{balance.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {balance > 0 ? '+' : ''}{((balance / totalIncome) * 100).toFixed(1)}% from income
                 </p>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-green-600">₹{totalIncome.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground mt-1">{format(selectedMonth, 'MMMM yyyy')}</p>
               </CardContent>
             </Card>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-red-600">₹{totalExpenses.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground mt-1">{format(selectedMonth, 'MMMM yyyy')}</p>
               </CardContent>
             </Card>
@@ -363,7 +363,7 @@ export default function DashboardPage() {
                               transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
                             }`}
                           >
-                            {transaction.type === 'INCOME' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                            {transaction.type === 'INCOME' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                       <div key={item.category} className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="font-medium">{item.category}</span>
-                          <span className="text-muted-foreground">${item.amount.toFixed(2)}</span>
+                          <span className="text-muted-foreground">₹{item.amount.toFixed(2)}</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                           <div
