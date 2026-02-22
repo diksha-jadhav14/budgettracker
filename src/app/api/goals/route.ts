@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ goal });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
+            const zodError = error as z.ZodError;
+            return NextResponse.json({ error: zodError.errors[0].message }, { status: 400 });
         }
         console.error('Failed to create goal:', error);
         return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
