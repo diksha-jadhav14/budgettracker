@@ -8,7 +8,7 @@ import { startOfMonth, endOfMonth } from 'date-fns';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const monthParam = searchParams.get('month');
     const monthDate = monthParam ? new Date(monthParam) : new Date();
-    
+
     const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthDate);
 
@@ -69,14 +69,25 @@ export async function GET(request: NextRequest) {
 
         const spentAmount = spent._sum.amount || 0;
         const percentage = (spentAmount / budget.amount) * 100;
-        
+
         let alertLevel: 'safe' | 'warning' | 'danger' | 'exceeded' = 'safe';
-        if (percentage >= 110) {
+        let message = '';
+
+        if (percentage >= 120) {
           alertLevel = 'exceeded';
+          message = "You are overspending. This can affect your savings goals. Take a break.";
         } else if (percentage >= 100) {
+          alertLevel = 'exceeded';
+          message = `You’ve crossed your ₹${budget.amount} limit. Consider reducing expenses.`;
+        } else if (percentage >= 90) {
           alertLevel = 'danger';
-        } else if (percentage >= 80) {
+          message = "Careful! You’re close to your limit.";
+        } else if (percentage >= 70) {
           alertLevel = 'warning';
+          message = "You’ve used 70% of your budget. Slow down a little.";
+        } else {
+          alertLevel = 'safe';
+          message = "You are doing great! Keep it up.";
         }
 
         return {
@@ -87,6 +98,7 @@ export async function GET(request: NextRequest) {
           remaining: budget.amount - spentAmount,
           percentage: Math.round(percentage),
           alertLevel,
+          message,
         };
       })
     );

@@ -28,6 +28,7 @@ import {
   UploadIcon,
   CheckCircleIcon,
   ImageIcon,
+  AlertTriangleIcon,
 } from 'lucide-react';
 
 type TransactionType = 'INCOME' | 'EXPENSE';
@@ -55,6 +56,7 @@ interface OCRResult {
     type: TransactionType | null;
     description: string | null;
     confidence: 'high' | 'medium' | 'low';
+    isUnclear?: boolean;
   };
 }
 
@@ -176,6 +178,15 @@ export function TransactionDialog({
       const result: { success: boolean } & OCRResult = await response.json();
       setOcrResult(result);
 
+      if (result.parsed.isUnclear) {
+        toast('Receipt unclear', {
+          description: 'Please verify the extracted data manually.',
+          icon: '⚠️',
+        });
+      } else {
+        toast.success('Image processed! Please review the extracted data.');
+      }
+
       if (result.parsed.amount) {
         setValue('amount', result.parsed.amount.toString());
       }
@@ -186,7 +197,6 @@ export function TransactionDialog({
         setValue('description', result.parsed.description);
       }
 
-      toast.success('Image processed! Please review the extracted data.');
     } catch (error) {
       console.error('OCR processing error:', error);
       toast.error('Failed to process image. Please try manual entry.');
@@ -251,7 +261,7 @@ export function TransactionDialog({
 
           <TabsContent value="upload" className="space-y-4 mt-4">
             {!imagePreview ? (
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center bg-muted/20 hover:bg-muted/30 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -263,11 +273,11 @@ export function TransactionDialog({
                   htmlFor="image-upload"
                   className="cursor-pointer flex flex-col items-center gap-3"
                 >
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                     <ImageIcon className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium">Click to upload receipt</p>
+                    <p className="font-medium text-lg">Click to upload receipt</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       PNG, JPG up to 5MB
                     </p>
@@ -276,17 +286,39 @@ export function TransactionDialog({
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="relative rounded-lg overflow-hidden border border-border">
+                <div className="relative rounded-lg overflow-hidden border border-border bg-black/5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Receipt preview"
-                    className="w-full h-auto max-h-[300px] object-contain"
+                    className="w-full h-auto max-h-[300px] object-contain mx-auto"
                   />
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute top-2 right-2 opacity-90 hover:opacity-100"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setImagePreview(null);
+                      setOcrResult(null);
+                    }}
+                  >
+                    Remove
+                  </Button>
                 </div>
 
                 {ocrResult && (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {ocrResult.parsed.isUnclear && (
+                      <div className="bg-orange-500/10 border border-orange-200 text-orange-700 dark:text-orange-300 rounded-lg p-3 text-sm flex items-start gap-2">
+                        <AlertTriangleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold">Receipt Unclear</p>
+                          <p>We couldn't clearly read parts of the receipt. Please double-check the extracted values below.</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">
                         Extracted Data
@@ -296,14 +328,15 @@ export function TransactionDialog({
                           ocrResult.parsed.confidence === 'high'
                             ? 'default'
                             : ocrResult.parsed.confidence === 'medium'
-                            ? 'secondary'
-                            : 'destructive'
+                              ? 'secondary'
+                              : 'destructive'
                         }
                       >
                         {ocrResult.parsed.confidence} confidence
                       </Badge>
                     </div>
-                    <div className="bg-muted/50 rounded-lg p-3 text-xs font-mono">
+
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs font-mono border border-border/50">
                       <p className="text-muted-foreground line-clamp-3">
                         {ocrResult.rawText}
                       </p>
@@ -312,24 +345,12 @@ export function TransactionDialog({
                 )}
 
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setImagePreview(null);
-                      setOcrResult(null);
-                    }}
-                    className="flex-1"
-                  >
-                    Change Image
-                  </Button>
                   {!ocrResult && (
                     <Button
                       type="button"
                       onClick={processImageWithOCR}
                       disabled={isProcessing}
-                      className="flex-1 gap-2"
+                      className="w-full gap-2"
                     >
                       {isProcessing ? (
                         <>
@@ -347,7 +368,7 @@ export function TransactionDialog({
                 </div>
 
                 {ocrResult && (
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2 border-t border-border">
                     <div className="space-y-2">
                       <Label htmlFor="type">Transaction Type</Label>
                       <Select
