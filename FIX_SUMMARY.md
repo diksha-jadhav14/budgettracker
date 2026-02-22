@@ -5,7 +5,11 @@
 When trying to process uploaded images, the application threw this error:
 
 ```
-[Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js']
+[Error: Cannot find module '/ROOT/node_modules
+
+
+
+/tesseract.js/src/worker-script/node/index.js']
 code: 'MODULE_NOT_FOUND'
 uncaughtException
 ```
