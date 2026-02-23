@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<Date>(startOfMonth(new Date()));
   const [trends, setTrends] = useState<Array<{ month: string; income: number; expenses: number; balance: number }>>([]);
+  const [dailyAdvice, setDailyAdvice] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
@@ -102,6 +103,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (session) {
       fetchTransactions();
+
+      // Fetch financial advice on mount
+      fetch('/api/advice')
+        .then(res => res.json())
+        .then(data => {
+          if (data.advice) setDailyAdvice(data.advice);
+        })
+        .catch(err => console.error("Error fetching advice:", err));
     }
   }, [session, fetchTransactions]);
 
@@ -191,6 +200,18 @@ export default function DashboardPage() {
 
       <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="space-y-8">
+          {dailyAdvice && (
+            <div className="glass-panel p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <LightbulbIcon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-primary">Daily Fin-Tip</p>
+                <p className="text-sm text-muted-foreground">{dailyAdvice}</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
