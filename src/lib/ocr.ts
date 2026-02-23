@@ -1,165 +1,190 @@
-import { createWorker, PSM } from 'tesseract.js';
+import { createWorker, PSM } from "tesseract.js";
 
-export async function extractTextFromImage(imageBuffer: Buffer): Promise<{ text: string; confidence: number }> {
+export interface OCRResult {
+  amount: number | null;
+  type: "INCOME" | "EXPENSE" | null;
+  description: string | null;
+  confidence: "high" | "medium" | "low";
+  rawText: string; // This will now contain the raw text from Tesseract
+}
+
+export async function extractTextFromImage(
+  imageBuffer: Buffer,
+): Promise<string> {
   let worker;
   try {
-    worker = await createWorker('eng', 1, {
+    worker = await createWorker("eng", 1, {
       logger: (m) => {
-        if (m.status === 'recognizing text') {
-          // console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+        if (m.status === "recognizing text") {
+          console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
         }
       },
-      errorHandler: (err) => console.error('Tesseract error:', err),
     });
 
     await worker.setParameters({
       tessedit_pageseg_mode: PSM.AUTO,
     });
 
-    const { data: { text, confidence } } = await worker.recognize(imageBuffer);
+    const {
+      data: { text },
+    } = await worker.recognize(imageBuffer);
 
     await worker.terminate();
 
-    return { text, confidence };
+    return text;
   } catch (error) {
     if (worker) {
-      await worker.terminate().catch(() => { });
+      await worker.terminate().catch(() => {});
     }
+    console.error("Tesseract failure", error);
     throw error;
   }
 }
 
-export function parseTransactionText(text: string, ocrConfidence: number): {
+export function parseTransactionText(text: string): {
   amount: number | null;
-  type: 'INCOME' | 'EXPENSE' | null;
+  type: "INCOME" | "EXPENSE" | null;
   description: string | null;
-  confidence: 'high' | 'medium' | 'low';
-  isUnclear: boolean;
+  confidence: "high" | "medium" | "low";
 } {
-  const cleanText = text.toLowerCase().replace(/\s+/g, ' ').trim();
+  // Normalize text to fix common OCR read errors on bad receipts
+  const cleanText = text
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    // Replace letters that look like numbers when near digits
+    .replace(/[sz]\s*(\d)/gi, "5$1")
+    .replace(/[oO]\s*(\d)/g, "0$1")
+    .replace(/[lI]\s*(\d)/g, "1$1")
+    .replace(/(\d)\s*[sS]/g, "$15")
+    .trim();
 
-  // 1. Better Amount Detection (Prioritize Totals)
-  const totalPatterns = [
-    /(?:total|grand total|net amount|amount due|to pay)\s*[:=-]?\s*(?:₹|rs|inr)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
-    /(?:total|amount)\s*[:=-]?\s*(?:₹|rs|inr)?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+  // Find all numbers that could realistically be a total/price
+  // Matches 1,234.56 | 1234.56 | 12.34 | ₹12.34
+  const numRegex =
+    /(?:rs|inr|rupees?|total|amt|amount|paid|sum|₹|pay|net|due)?[\s:=-]*((?:\d{1,3}[, ])*(?:\d{3})(?:[\.,]\d{2})?|\d+(?:[\.,]\d{2})?)/g;
+
+  let match;
+  let amounts: number[] = [];
+
+  while ((match = numRegex.exec(cleanText)) !== null) {
+    // clean up commas or spaces from number string
+    let rawNum = match[1].replace(/[, ]/g, "");
+    let val = parseFloat(rawNum);
+    // filter out impossible numbers (e.g. phone numbers misread as amounts)
+    if (!isNaN(val) && val > 0 && val < 5000000) {
+      amounts.push(val);
+    }
+  }
+
+  // Pure fallback: find any standard decimal numbers
+  const plainNumRegex = /(\d+\.\d{2})/g;
+  while ((match = plainNumRegex.exec(cleanText)) !== null) {
+    let val = parseFloat(match[1]);
+    if (!isNaN(val) && val > 0 && val < 5000000) {
+      amounts.push(val);
+    }
+  }
+
+  // The 'total' on a receipt is usually the largest numerical value present.
+  let finalAmount = null;
+  if (amounts.length > 0) {
+    amounts.sort((a, b) => b - a);
+    finalAmount = amounts[0]; // Take the max amount
+  }
+
+  const creditKeywords = [
+    "credit",
+    "deposit",
+    "salary",
+    "income",
+    "received",
+    "refund",
+    "saving",
+  ];
+  const debitKeywords = [
+    "debit",
+    "withdraw",
+    "purchase",
+    "expense",
+    "paid",
+    "bill",
+    "total",
+    "tax",
+    "store",
+    "shop",
+    "mart",
+    "supermarket",
+    "cafe",
+    "restaurant",
   ];
 
-  let amount: number | null = null;
-
-  // Try finding explicit Total first
-  for (const pattern of totalPatterns) {
-    const match = cleanText.match(pattern);
-    if (match && match[1]) {
-      amount = parseFloat(match[1].replace(/,/g, ''));
-      break;
-    }
-  }
-
-  // Fallback: Find largest number with currency symbol
-  if (!amount) {
-    const currencyPattern = /(?:₹|rs|inr)\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/gi;
-    const matches = [...cleanText.matchAll(currencyPattern)];
-    let maxAmount = 0;
-
-    for (const match of matches) {
-      const val = parseFloat(match[1].replace(/,/g, ''));
-      if (val > maxAmount) maxAmount = val;
-    }
-
-    if (maxAmount > 0) amount = maxAmount;
-  }
-
-  // Fallback: Just find any decent looking number (last resort)
-  if (!amount) {
-    const numberPattern = /(\d+(?:,\d{3})*\.\d{2})/g;
-    const matches = [...cleanText.matchAll(numberPattern)];
-    // Usually the total is the last number or the largest
-    let maxAmount = 0;
-    for (const match of matches) {
-      const val = parseFloat(match[1].replace(/,/g, ''));
-      if (val > maxAmount && val < 1000000) maxAmount = val; // Sanity check
-    }
-    if (maxAmount > 0) amount = maxAmount;
-  }
-
-  // 2. Type Detection
-  const creditKeywords = ['credit', 'deposit', 'salary', 'income', 'received', 'refund', 'payment received', 'credited'];
-  const debitKeywords = ['debit', 'withdraw', 'purchase', 'expense', 'paid', 'bill', 'payment', 'spent', 'debited', 'merchant', 'store', 'retail'];
-
-  let type: 'INCOME' | 'EXPENSE' | null = null;
-  let typeConfidence = 0;
+  let type: "INCOME" | "EXPENSE" | null = null;
+  let typeScore = 0;
 
   for (const keyword of creditKeywords) {
-    if (cleanText.includes(keyword)) {
-      type = 'INCOME';
-      typeConfidence = 1;
-      break;
-    }
+    if (cleanText.includes(keyword)) typeScore -= 2;
+  }
+  for (const keyword of debitKeywords) {
+    if (cleanText.includes(keyword)) typeScore += 1;
   }
 
-  if (!type) {
-    for (const keyword of debitKeywords) {
-      if (cleanText.includes(keyword)) {
-        type = 'EXPENSE';
-        typeConfidence = 1;
-        break;
-      }
-    }
-  }
+  if (typeScore > 0) type = "EXPENSE";
+  else if (typeScore < 0) type = "INCOME";
+  else type = "EXPENSE"; // Default to expense for standard receipts if ambiguous
 
-  // Default to EXPENSE for receipts if found amount but no clear type
-  if (!type && amount) {
-    type = 'EXPENSE';
-    typeConfidence = 0.5;
-  }
+  // Description extraction
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 3 && !/^\d+$/.test(l)); // ignore purely numeric lines
 
-  // 3. Description Detection
-  // Look for text at the top (Merchant name usually)
-  const lines = text.split('\n').filter(l => l.trim().length > 3);
-  let description: string | null = null;
+  let description = null;
 
   if (lines.length > 0) {
-    // First line is often the Merchant
-    const firstLine = lines[0].trim();
-    if (firstLine.length < 50 && !firstLine.match(/\d/)) {
-      description = firstLine;
-    } else {
-      // Look for known patterns
-      const descriptionPatterns = [
-        /(?:merchant|store|vendor|at)[\s:]+([^\n]{3,50})/i,
-        /^(?:welcome to )?([A-Z][A-Za-z\s&]{2,50})/i,
-      ];
+    // The top text of a receipt is usually the merchant name
+    for (let line of lines) {
+      const lowerLine = line.toLowerCase();
+      if (
+        /[A-Za-z]{4,}/.test(line) &&
+        !lowerLine.includes("total") &&
+        !lowerLine.includes("date") &&
+        !lowerLine.includes("tax") &&
+        !lowerLine.includes("visa") &&
+        !lowerLine.includes("mastercard") &&
+        !lowerLine.includes("cash")
+      ) {
+        description = line
+          .substring(0, 40)
+          .replace(/[^a-zA-Z0-9\s&]/g, "")
+          .trim();
 
-      for (const pattern of descriptionPatterns) {
-        const match = text.match(pattern);
-        if (match && match[1]) {
-          description = match[1].trim();
+        // Capitalize nicely
+        description = description.replace(/\b\w/g, (c) => c.toUpperCase());
+        if (description.length >= 3) {
           break;
         }
       }
     }
   }
 
-  // 4. Overall Confidence & Clarity Check
-  let confidenceLevel: 'high' | 'medium' | 'low' = 'low';
-  let isUnclear = false;
+  if (!description) description = "Unknown Merchant";
 
-  if (ocrConfidence < 60) {
-    isUnclear = true;
-    confidenceLevel = 'low';
-  } else {
-    if (amount && type && description) {
-      confidenceLevel = 'high';
-    } else if (amount) {
-      confidenceLevel = 'medium';
-    }
+  // Compute confidence based on how much was successfully extracted
+  let confidence: "high" | "medium" | "low" = "low";
+  if (
+    finalAmount &&
+    description !== "Unknown Merchant" &&
+    Math.abs(typeScore) >= 1
+  ) {
+    confidence = "high";
+  } else if (finalAmount && type) {
+    confidence = "medium";
   }
 
   return {
-    amount,
+    amount: finalAmount,
     type,
-    description: description ? description.replace(/[^\w\s&]/g, '').trim() : null,
-    confidence: confidenceLevel,
-    isUnclear,
+    description,
+    confidence,
   };
 }

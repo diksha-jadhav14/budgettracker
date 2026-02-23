@@ -3,8 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, AlertTriangle, CheckCircle, Target, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { AlertCircleIcon, AlertTriangleIcon, CheckCircleIcon, TargetIcon, XCircleIcon } from 'lucide-react';
 
 interface BudgetStatus {
   budgetId: string;
@@ -18,7 +17,6 @@ interface BudgetStatus {
   remaining: number;
   percentage: number;
   alertLevel: 'safe' | 'warning' | 'danger' | 'exceeded';
-  message?: string;
 }
 
 interface BudgetCardProps {
@@ -31,83 +29,65 @@ export function BudgetCard({ budgetStatus, onSetBudget }: BudgetCardProps) {
     switch (alertLevel) {
       case 'safe':
         return {
-          icon: CheckCircle,
+          icon: CheckCircleIcon,
           color: 'text-green-600',
           bgColor: 'bg-green-500',
-          borderColor: 'border-green-200',
-          badgeVariant: 'outline' as const,
-          badgeColor: 'text-green-700 border-green-200 bg-green-50',
+          badgeVariant: 'default' as const,
           label: 'On Track',
-          emoji: '😊',
         };
       case 'warning':
         return {
-          icon: AlertTriangle,
-          color: 'text-orange-500',
-          bgColor: 'bg-orange-500',
-          borderColor: 'border-orange-200',
-          badgeVariant: 'outline' as const,
-          badgeColor: 'text-orange-700 border-orange-200 bg-orange-50',
+          icon: AlertTriangleIcon,
+          color: 'text-yellow-600',
+          bgColor: 'bg-yellow-500',
+          badgeVariant: 'secondary' as const,
           label: 'Warning',
-          emoji: '😐',
         };
       case 'danger':
         return {
-          icon: AlertCircle,
-          color: 'text-red-500',
-          bgColor: 'bg-red-500',
-          borderColor: 'border-red-200',
+          icon: AlertCircleIcon,
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-500',
           badgeVariant: 'destructive' as const,
-          badgeColor: '',
-          label: 'Near Limit',
-          emoji: '⚠️',
+          label: 'At Limit',
         };
       case 'exceeded':
         return {
-          icon: XCircle,
-          color: 'text-red-700',
-          bgColor: 'bg-red-700',
-          borderColor: 'border-red-200',
+          icon: XCircleIcon,
+          color: 'text-red-600',
+          bgColor: 'bg-red-500',
           badgeVariant: 'destructive' as const,
-          badgeColor: 'animate-pulse',
-          label: 'Over Budget',
-          emoji: '🔥',
+          label: 'Exceeded',
         };
       default:
         return {
-          icon: Target,
-          color: 'text-blue-500',
-          bgColor: 'bg-blue-500',
-          borderColor: 'border-blue-200',
+          icon: TargetIcon,
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-500',
           badgeVariant: 'secondary' as const,
-          badgeColor: '',
           label: 'Unknown',
-          emoji: '🤔',
         };
     }
   };
 
   if (budgetStatus.length === 0) {
     return (
-      <Card className="border-border/50 shadow-md h-full">
+      <Card className="glass-panel overflow-hidden shadow-xl shadow-primary/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-md">
+              <TargetIcon className="h-5 w-5 text-primary" />
+            </div>
             Budget Goals
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12 flex flex-col items-center justify-center h-full">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"
-            >
-              <Target className="h-8 w-8 text-primary" />
-            </motion.div>
-            <p className="text-muted-foreground mb-4">No budgets set yet</p>
-            <Button onClick={onSetBudget} variant="outline" className="hover:bg-primary hover:text-primary-foreground transition-colors">
+          <div className="text-center py-16">
+            <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-6 border border-primary/10 shadow-inner">
+              <TargetIcon className="h-10 w-10 text-primary opacity-60" />
+            </div>
+            <p className="text-muted-foreground mb-6 text-lg">No budgets set yet</p>
+            <Button onClick={onSetBudget} variant="outline" className="gap-2 shadow-sm rounded-full px-6">
               Set Your First Budget
             </Button>
           </div>
@@ -117,87 +97,69 @@ export function BudgetCard({ budgetStatus, onSetBudget }: BudgetCardProps) {
   }
 
   return (
-    <Card className="border-border/50 shadow-md h-full overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
+    <Card className="glass-panel overflow-hidden shadow-xl shadow-primary/5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 border-b border-border/40">
+        <CardTitle className="flex items-center gap-3">
+          <div className="p-2.5 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-md">
+            <TargetIcon className="h-5 w-5 text-primary" />
+          </div>
           Budget Goals
         </CardTitle>
-        <Button onClick={onSetBudget} variant="ghost" size="sm" className="h-8">
-          Manage
+        <Button onClick={onSetBudget} variant="ghost" size="sm" className="rounded-full">
+          Add Budget
         </Button>
       </CardHeader>
-      <CardContent className="space-y-6 pt-4">
-        {budgetStatus.map((budget, index) => {
-          const config = getAlertConfig(budget.alertLevel);
-          const Icon = config.icon;
-          const isExceeded = budget.alertLevel === 'exceeded';
-          const percentage = Math.min(budget.percentage, 100);
+      <CardContent className="pt-6">
+        <div className="space-y-5">
+          {budgetStatus.map((budget) => {
+            const config = getAlertConfig(budget.alertLevel);
+            const Icon = config.icon;
 
-          return (
-            <motion.div
-              key={budget.budgetId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`group p-4 rounded-xl border ${config.borderColor} bg-card hover:shadow-md transition-all duration-300 ${isExceeded ? 'bg-red-50/10' : ''}`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${config.bgColor}/10 group-hover:scale-110 transition-transform`}>
-                    <Icon className={`h-5 w-5 ${config.color}`} />
+            return (
+              <div
+                key={budget.budgetId}
+                className="p-4 rounded-lg border border-border/40 hover:bg-muted/20 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${config.bgColor}/10`}>
+                      <Icon className={`h-4 w-4 ${config.color}`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">
+                        {budget.category.icon && `${budget.category.icon} `}
+                        {budget.category.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        ₹{budget.spent.toFixed(2)} of ₹{budget.budgetAmount.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm flex items-center gap-2">
-                      {budget.category.icon} {budget.category.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      <span className="font-medium text-foreground">₹{budget.spent.toFixed(0)}</span> of ₹{budget.budgetAmount.toFixed(0)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Badge variant={config.badgeVariant} className={`${config.badgeColor} px-2 py-0.5 h-6`}>
+                  <Badge variant={config.badgeVariant} className="text-xs">
                     {config.label}
                   </Badge>
-                  <span className="text-xl" role="img" aria-label={config.label}>
-                    {config.emoji}
-                  </span>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-muted-foreground">
-                    {budget.percentage}% used
-                  </span>
-                  <span className={budget.remaining < 0 ? 'text-red-600 font-bold' : 'text-muted-foreground'}>
-                    {budget.remaining < 0 ? 'Over: ' : 'Left: '}
-                    <span className={budget.remaining < 0 ? 'text-red-600' : 'text-green-600 font-medium'}>
-                      ₹{Math.abs(budget.remaining).toFixed(0)}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      {budget.percentage}% used
                     </span>
-                  </span>
-                </div>
-                <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                  <motion.div
-                    className={`h-full ${config.bgColor} shadow-sm rounded-full`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
+                    <span className={budget.remaining < 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}>
+                      {budget.remaining < 0 ? 'Over by' : 'Remaining'}: ₹{Math.abs(budget.remaining).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={`h-full transition-all ${config.bgColor}`}
+                      style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                    />
+                  </div>
                 </div>
               </div>
-
-              {/* Display the motivational/warning message if available */}
-              {budget.message && (
-                <div className={`mt-2 text-xs p-2 rounded-md border ${config.borderColor} bg-background/50 flex items-start gap-2`}>
-                  <Icon className={`h-3 w-3 ${config.color} mt-0.5 flex-shrink-0`} />
-                  <span className="text-muted-foreground">{budget.message}</span>
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

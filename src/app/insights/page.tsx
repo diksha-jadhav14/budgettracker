@@ -111,11 +111,18 @@ export default function InsightsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-background relative selection:bg-primary/20">
+      {/* Background Ambient Blobs */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-32 left-1/3 w-[500px] h-[500px] bg-pink-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <header className="glass z-10 border-b border-border/40 sticky top-0">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 rounded-full hover:bg-white/10">
               <ArrowLeftIcon className="h-4 w-4" />
               Back to Dashboard
             </Button>
@@ -123,23 +130,27 @@ export default function InsightsPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="space-y-8">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                  <PiggyBankIcon className="h-8 w-8 text-primary" />
-                  Budget Insights
+                <h1 className="text-4xl font-extrabold tracking-tight flex items-center gap-3">
+                  <div className="p-2.5 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-md">
+                    <PiggyBankIcon className="h-8 w-8 text-primary" />
+                  </div>
+                  <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-purple-500">
+                    Budget Insights
+                  </span>
                 </h1>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-muted-foreground text-lg mt-2">
                   Get personalized spending insights and suggestions
                 </p>
               </div>
             </div>
-            
+
             <div className="flex justify-center sm:justify-start">
-              <MonthSelector 
+              <MonthSelector
                 selectedDate={selectedMonth}
                 onDateChange={setSelectedMonth}
               />
@@ -154,10 +165,12 @@ export default function InsightsPage() {
             <>
               {/* Monthly Comparison */}
               <div className="grid gap-6 md:grid-cols-2">
-                <Card className="border-border/50 shadow-md">
+                <Card className="glass-panel overflow-hidden shadow-xl shadow-primary/5 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="h-5 w-5 text-primary" />
+                      <div className="p-1.5 bg-primary/10 rounded-lg">
+                        <CalendarIcon className="h-5 w-5 text-primary" />
+                      </div>
                       {analysis.currentMonth.month}
                     </CardTitle>
                     <CardDescription>Current month summary</CardDescription>
@@ -179,9 +192,8 @@ export default function InsightsPage() {
                       <div className="flex justify-between text-sm pt-2 border-t">
                         <span className="font-medium">Balance</span>
                         <span
-                          className={`font-bold ${
-                            analysis.currentMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}
+                          className={`font-bold ${analysis.currentMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}
                         >
                           ₹{analysis.currentMonth.balance.toFixed(2)}
                         </span>
@@ -199,10 +211,12 @@ export default function InsightsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-md">
+                <Card className="glass-panel overflow-hidden shadow-xl shadow-primary/5 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                      <div className="p-1.5 bg-muted rounded-lg">
+                        <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
                       {analysis.previousMonth.month}
                     </CardTitle>
                     <CardDescription>Previous month summary</CardDescription>
@@ -224,9 +238,8 @@ export default function InsightsPage() {
                       <div className="flex justify-between text-sm pt-2 border-t">
                         <span className="font-medium">Balance</span>
                         <span
-                          className={`font-bold ${
-                            analysis.previousMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}
+                          className={`font-bold ${analysis.previousMonth.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}
                         >
                           ₹{analysis.previousMonth.balance.toFixed(2)}
                         </span>
@@ -242,7 +255,7 @@ export default function InsightsPage() {
               </div>
 
               {/* Monthly Comparison Chart */}
-              <Card className="border-border/50 shadow-md">
+              <Card className="glass-panel shadow-xl shadow-primary/5">
                 <CardHeader>
                   <CardTitle>Monthly Comparison</CardTitle>
                   <CardDescription>Income vs Expenses comparison</CardDescription>
@@ -286,10 +299,12 @@ export default function InsightsPage() {
               </Card>
 
               {/* Insights & Suggestions */}
-              <Card className="border-border/50 shadow-md">
+              <Card className="glass-panel shadow-xl shadow-primary/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUpIcon className="h-5 w-5 text-primary" />
+                    <div className="p-1.5 bg-primary/10 rounded-lg">
+                      <TrendingUpIcon className="h-5 w-5 text-primary" />
+                    </div>
                     Personalized Insights
                   </CardTitle>
                   <CardDescription>
@@ -302,7 +317,7 @@ export default function InsightsPage() {
                       {analysis.insights.map((insight, index) => (
                         <div
                           key={index}
-                          className="p-4 rounded-lg border border-border/50 bg-muted/20 space-y-2"
+                          className="p-5 rounded-2xl border border-border/40 bg-background/40 hover:bg-muted/60 backdrop-blur-md transition-all shadow-sm"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-2">
@@ -332,7 +347,7 @@ export default function InsightsPage() {
 
               {/* Category Spending */}
               <div className="grid gap-6 lg:grid-cols-2">
-                <Card className="border-border/50 shadow-md">
+                <Card className="glass-panel shadow-xl shadow-primary/5">
                   <CardHeader>
                     <CardTitle>Category Breakdown</CardTitle>
                     <CardDescription>Where your money goes this month</CardDescription>
@@ -370,7 +385,7 @@ export default function InsightsPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-md">
+                <Card className="glass-panel shadow-xl shadow-primary/5">
                   <CardHeader>
                     <CardTitle>Spending Distribution</CardTitle>
                     <CardDescription>Visual breakdown by category</CardDescription>
@@ -427,7 +442,7 @@ export default function InsightsPage() {
               </div>
 
               {/* Spending Trends */}
-              <Card className="border-border/50 shadow-md">
+              <Card className="glass-panel shadow-xl shadow-primary/5">
                 <CardHeader>
                   <CardTitle>Spending Trends</CardTitle>
                   <CardDescription>
@@ -436,11 +451,11 @@ export default function InsightsPage() {
                 </CardHeader>
                 <CardContent>
                   {analysis.spendingTrends.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {analysis.spendingTrends.slice(0, 8).map((trend) => (
                         <div
                           key={trend.category}
-                          className="flex items-center justify-between p-3 rounded-lg border border-border/40 hover:bg-muted/50 transition-colors"
+                          className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-background/50 hover:bg-muted/80 backdrop-blur-md transition-all hover:scale-[1.01]"
                         >
                           <div className="flex-1">
                             <p className="font-medium text-sm">{trend.category}</p>
